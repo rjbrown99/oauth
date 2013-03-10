@@ -297,6 +297,9 @@ function oauth_common_form_authorize_submit(&$form, &$form_state) {
     // Pick the callback url apart and add the token parameter
     $callback = parse_url($callback);
     $query = array();
+    // TODO: Verify store oauth_verifier with expires
+    // Doc: http://tools.ietf.org/html/rfc5849#section-2.2
+    $query['oauth_verifier'] = md5(microtime() . mt_rand());
     if (!empty($callback['query'])) {
       parse_str($callback['query'], $query);
     }
