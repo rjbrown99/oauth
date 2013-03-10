@@ -113,7 +113,7 @@ function oauth_common_form_authorize() {
       $token->write(TRUE);
 
       // Pick the callback url apart and add the token parameter
-      $callback = parse_url($consumer->callback_url);
+      $callback = empty($callback) ? parse_url($consumer->callback_url) : parse_url($callback);
       $query = array();
       parse_str($callback['query'], $query);
       $query['oauth_token'] = $token->key;
@@ -139,6 +139,13 @@ function oauth_common_form_authorize() {
       '#type'  => 'value',
       '#value' => $token,
     );
+
+   if (!empty($callback) && valid_url($callback, TRUE)) {
+      $form['callback'] = array(
+        '#type' => 'value',
+        '#value' => $callback
+      );
+    }
 
     $message = !empty($context->authorization_options['message']) ? $context->authorization_options['message'] :
       'The application @appname wants to access @sitename on your behalf, check the permissions that you would like the application to have.';
@@ -282,9 +289,10 @@ function oauth_common_form_authorize_submit(&$form, &$form_state) {
 
   $token->write(TRUE);
 
-  if (!empty($consumer->callback_url) && $consumer->callback_url !== 'oob') {
+  $callback = isset($form_state['values']['callback']) ? $form_state['values']['callback'] : $consumer->callback_url;
+  if (!empty($callback) && $callback !== 'oob') {
     // Pick the callback url apart and add the token parameter
-    $callback = parse_url($consumer->callback_url);
+    $callback = parse_url($callback);
     $query = array();
     if (!empty($callback['query'])) {
       parse_str($callback['query'], $query);
